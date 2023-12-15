@@ -15,38 +15,28 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
-
-function getEmoji(): string {
-  const emojiOptions = [
-    '🐸',
-    '👷‍♂️',
-    '🧔',
-    '👵',
-    '🧒',
-    '👧',
-    '🐨',
-    '🐍',
-    '👩‍💻',
-    '👩',
-    '🦥',
-  ]
-  const randomIndex = Math.floor(Math.random() * emojiOptions.length)
-  return emojiOptions[randomIndex]
-}
 </script>
 
 <template>
   <LoadingSpinner v-if="isLoading"></LoadingSpinner>
 
-  <ul class="users">
+  <ul class="users" v-else>
     <li class="user" v-for="user in store.state.users" :key="user.id">
-      <div class="user__icon">{{ getEmoji() }}</div>
+      <div class="user__icon"></div>
       <h3 class="user__name">{{ user.name }}</h3>
       <div class="user__info">
         <div class="user__email">✉&nbsp;{{ user.email.toLowerCase() }}</div>
         <div class="user__phone">☎&nbsp;{{ user.phone }}</div>
       </div>
-      <button class="button user__button">View Profile</button>
+      <router-link
+        :to="`/user/${user.id}`"
+        v-slot="{ navigate }"
+        class="router-link"
+      >
+        <button @click="navigate" class="button user__button">
+          View Profile
+        </button>
+      </router-link>
     </li>
   </ul>
 </template>
@@ -96,11 +86,18 @@ function getEmoji(): string {
     }
   }
 
+  &__button {
+    width: 100%;
+  }
+
   &__icon {
     position: absolute;
     right: 1rem;
     top: 1rem;
-    font-size: 2rem;
+    width: 3rem;
+    height: 3rem;
+    background-color: var(--green-400);
+    border-radius: 50%;
     opacity: 0.3;
     transition: all 0.2s ease-in-out;
     user-select: none;
@@ -112,9 +109,9 @@ function getEmoji(): string {
       color: var(--green-300);
     }
   }
+}
 
-  &__button {
-    margin-top: 1rem;
-  }
+.router-link {
+  margin-top: 1rem;
 }
 </style>

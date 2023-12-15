@@ -1,10 +1,7 @@
-<script setup lang="ts">
-import UserList from './components/UserList.vue'
-</script>
+<script setup lang="ts"></script>
 
 <template>
-  <h2 class="title">Users</h2>
-  <UserList></UserList>
+  <router-view></router-view>
 </template>
 
 <style scoped lang="scss">

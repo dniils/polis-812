@@ -6,4 +6,10 @@ async function getUsers(): Promise<UserInterface[]> {
   return data
 }
 
-export { getUsers }
+async function getUser(id: number): Promise<UserInterface[]> {
+  const f = await fetch(`https://jsonplaceholder.typicode.com/users?id=${id}`)
+  const data = f.json()
+  return data
+}
+
+export { getUsers, getUser }

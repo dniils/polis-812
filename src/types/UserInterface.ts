@@ -3,4 +3,5 @@ export interface UserInterface {
   id: number
   email: string
   phone: string
+  icon?: string
 }
