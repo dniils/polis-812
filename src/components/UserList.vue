@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getUsers } from '../api/index'
-import { UserInterface } from '../types/UserInterface'
+import { useStore } from 'vuex'
+import LoadingSpinner from './LoadingSpinner.vue'
 
-const users = ref<UserInterface[]>([])
+const store = useStore()
+const isLoading = ref<boolean>(true)
 
 onMounted(async () => {
-  users.value = await getUsers()
+  try {
+    await store.dispatch('getUsersData')
+  } catch (error) {
+    console.error('Error dispatching getUsersData:', error)
+  } finally {
+    isLoading.value = false
+  }
 })
 
 function getEmoji(): string {
@@ -24,19 +31,19 @@ function getEmoji(): string {
     '🦥',
   ]
   const randomIndex = Math.floor(Math.random() * emojiOptions.length)
-  console.log(emojiOptions[randomIndex])
   return emojiOptions[randomIndex]
 }
 </script>
 
 <template>
-  <h2 class="title">Users</h2>
+  <LoadingSpinner v-if="isLoading"></LoadingSpinner>
+
   <ul class="users">
-    <li class="user" v-for="user in users" :key="user.id">
+    <li class="user" v-for="user in store.state.users" :key="user.id">
       <div class="user__icon">{{ getEmoji() }}</div>
       <h3 class="user__name">{{ user.name }}</h3>
       <div class="user__info">
-        <div class="user__email">✉&nbsp;{{ user.email }}</div>
+        <div class="user__email">✉&nbsp;{{ user.email.toLowerCase() }}</div>
         <div class="user__phone">☎&nbsp;{{ user.phone }}</div>
       </div>
       <button class="button user__button">View Profile</button>
@@ -45,11 +52,6 @@ function getEmoji(): string {
 </template>
 
 <style scoped lang="scss">
-.title {
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
 .users {
   display: grid;
   grid-template-columns: 1fr;
