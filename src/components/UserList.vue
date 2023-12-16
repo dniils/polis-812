@@ -47,15 +47,15 @@ onMounted(async () => {
   grid-template-columns: 1fr;
   gap: 1rem;
 
-  @media screen and (min-width: 600px) {
+  @media screen and (min-width: 700px) {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @media screen and (min-width: 900px) {
+  @media screen and (min-width: 1000px) {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  @media screen and (min-width: 1200px) {
+  @media screen and (min-width: 1300px) {
     grid-template-columns: repeat(4, 1fr);
   }
 }
