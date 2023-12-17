@@ -31,7 +31,6 @@ const store = createStore<AppState>({
   mutations: {
     setUsers(state, newUsersData: UserInterface[]): void {
       state.users = newUsersData
-      // .sort((a, b) => a.name.localeCompare(b.name))
     },
     setUser(state, newUserData: UserInterface[]): void {
       state.currentUser = newUserData

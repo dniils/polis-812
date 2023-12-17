@@ -8,7 +8,7 @@ const isLoading = ref<boolean>(true)
 
 onMounted(async () => {
   try {
-    await store.dispatch('getUsersData')
+    if (!store.state.users.length) await store.dispatch('getUsersData')
   } catch (error) {
     console.error('Error dispatching getUsersData:', error)
   } finally {
@@ -19,7 +19,6 @@ onMounted(async () => {
 
 <template>
   <LoadingSpinner v-if="isLoading"></LoadingSpinner>
-
   <ul class="users" v-else>
     <li class="user" v-for="user in store.state.users" :key="user.id">
       <div class="user__icon"></div>

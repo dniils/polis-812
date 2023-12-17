@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
 import { register } from 'swiper/element/bundle'
 import LoadingSpinner from './LoadingSpinner.vue'
-import trimText from '../utils/trimText'
 import { AlbumInterface } from '../types/AlbumInterface'
 import { PhotoInterface } from '../types/PhotoInterface'
+import trimText from '../utils/trimText'
 import {
   ALBUM_TITLE_MAX_CHARS,
   POST_TITLE_MAX_CHARS,
@@ -16,12 +17,15 @@ import {
 register()
 
 const store = useStore()
+const router = useRouter()
 const { userId } = defineProps(['userId'])
 const userDataIsLoading = ref(true)
 const tabs = ref({
-  tabActive: 'Albums',
-  name: ['Albums', 'Posts'],
+  tabActive: '',
+  name: ['albums', 'posts', 'lorem'],
 })
+const currentView =
+  router.currentRoute.value.query.view?.toString() || tabs.value.name[0]
 
 onMounted(async () => {
   try {
@@ -43,18 +47,40 @@ onMounted(async () => {
   }
 })
 
+watch(
+  () => router.currentRoute.value.query.view,
+  (newView) => {
+    tabs.value.tabActive = newView?.toString() || currentView
+  }
+)
+
+function setQueryParam(view: string): void {
+  router.push({ query: { view } })
+}
+
+function setActiveTab(tabName: string): void {
+  tabs.value.tabActive = tabName
+}
+
+function handleView(view: string) {
+  setQueryParam(view)
+  setActiveTab(view)
+}
+
+handleView(currentView)
+
 function selectTab(e: MouseEvent): void {
   const selectedTab = (e.target as HTMLDivElement).innerHTML
   if (tabs.value.tabActive !== selectedTab) {
-    tabs.value.tabActive = selectedTab
+    handleView(selectedTab)
   }
 }
 </script>
 
 <template>
   <div>
+    <button class="button button_back" @click="router.push('/')">&lt;-</button>
     <LoadingSpinner v-if="userDataIsLoading"></LoadingSpinner>
-
     <div v-if="!userDataIsLoading" class="user-profile">
       <div class="user-info">
         <div class="user-profile__icon"></div>
@@ -89,10 +115,11 @@ function selectTab(e: MouseEvent): void {
             {{ tab }}
           </div>
         </div>
+
         <div class="tabs__content">
-          <div class="albums" v-if="tabs.tabActive === 'Albums'">
-            <div class="albums__items">
-              <div
+          <div class="albums" v-if="tabs.tabActive === 'albums'">
+            <ul class="albums__items">
+              <li
                 class="albums__item"
                 v-for="(album, index) in store.state.userAlbums"
                 :key="album.id"
@@ -119,13 +146,13 @@ function selectTab(e: MouseEvent): void {
                     <img :src="photo.url" alt="photo" class="albums__photo" />
                   </swiper-slide>
                 </swiper-container>
-              </div>
-            </div>
+              </li>
+            </ul>
           </div>
 
-          <div class="posts" v-if="tabs.tabActive === 'Posts'">
-            <div class="posts__items">
-              <div
+          <div class="posts" v-if="tabs.tabActive === 'posts'">
+            <ul class="posts__items">
+              <li
                 class="posts__item"
                 v-for="post in store.state.userPosts"
                 :key="post.id"
@@ -136,8 +163,37 @@ function selectTab(e: MouseEvent): void {
                 <p class="posts__body">
                   {{ trimText(post.body, POST_BODY_MAX_CHARS) }}
                 </p>
-              </div>
-            </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="lorem" v-if="tabs.tabActive === 'lorem'">
+            <p>
+              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Saepe
+              corporis aut, ex id exercitationem quia sequi quidem sed quis
+              beatae distinctio vel molestias velit. Possimus delectus soluta
+              quas, quod et nemo eligendi nam. Eveniet rem reprehenderit nemo
+              necessitatibus, optio eos voluptatibus porro alias consequatur
+              dicta dolores sequi corporis aliquid reiciendis perferendis
+              aliquam deleniti deserunt consequuntur molestias. Doloribus
+              pariatur aspernatur magni architecto expedita minus quae.
+              Reiciendis hic, modi eaque corporis voluptatem totam rem adipisci
+              nobis qui, nisi atque sequi pariatur. Vitae dolor natus illo nihil
+              similique dolores inventore accusamus vel quis temporibus
+              molestias quam adipisci labore aut culpa tempore, ea minima
+              consequuntur expedita ab autem. Illo in neque odit dolor tenetur
+              deserunt ab amet aperiam, voluptates iusto aliquid a iste et
+              sapiente facilis, eius beatae! Voluptatibus quaerat dolor laborum
+              nulla quia ipsa officia dolores sequi ipsam maxime, ut eligendi,
+              et aspernatur consectetur aliquid ex numquam optio voluptates iure
+              veniam. Laudantium rerum dolore laborum quia, illum veniam velit
+              unde ratione cumque saepe, animi eligendi dicta laboriosam sequi
+              repudiandae, doloremque vel quidem distinctio dolores hic ipsum!
+              In accusantium at optio alias, ab quasi aliquam maxime sed
+              eligendi dolores modi eum dolor voluptas corrupti illo
+              reprehenderit aliquid hic laborum. Dignissimos quis optio cum
+              minus!
+            </p>
           </div>
         </div>
       </div>
@@ -152,29 +208,53 @@ function selectTab(e: MouseEvent): void {
   background-color: var(--green-200);
 }
 
+.button {
+  &_back {
+    font-family: 'Fira Code', monospace;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+}
+
+.tabs-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+}
+
 .tabs {
   display: flex;
   flex-direction: row;
-  gap: 0.5rem;
   justify-content: center;
+  background-color: var(--green-200);
+  border-radius: 1rem;
 
   &__item {
-    color: var(--green-300);
-    font-weight: 600;
-    background-color: var(--green-200);
-    border-radius: 1rem;
-    min-height: 2rem;
-    min-width: 6rem;
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 2rem;
+    min-width: 6rem;
+    font-weight: 600;
+    color: var(--green-300);
+    background-color: var(--green-200);
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
     user-select: none;
+    text-transform: capitalize;
+    transition: all 0.2s ease-in-out;
 
     &:hover {
       color: var(--green-500);
-      background-color: var(--green-300);
+    }
+
+    &:first-child {
+      border-radius: 1rem 0 0 1rem;
+    }
+
+    &:last-child {
+      border-radius: 0 1rem 1rem 0;
     }
 
     &_active {
@@ -220,15 +300,10 @@ function selectTab(e: MouseEvent): void {
 
 .user-info {
   @include card;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-}
-
-.tabs-wrapper {
-  display: flex;
-  flex-direction: column;
   gap: 1rem;
 }
 
@@ -237,8 +312,8 @@ function selectTab(e: MouseEvent): void {
   &__items {
     display: grid;
     grid-template-columns: 1fr;
-    margin-top: 1rem;
     gap: 1rem;
+    list-style: none;
 
     @media screen and (min-width: 900px) {
       grid-template-columns: repeat(2, 1fr);
@@ -246,6 +321,10 @@ function selectTab(e: MouseEvent): void {
 
     @media screen and (min-width: 1280px) {
       grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media screen and (min-width: 1440px) {
+      grid-template-columns: repeat(4, 1fr);
     }
   }
 
@@ -291,15 +370,16 @@ function selectTab(e: MouseEvent): void {
   }
 }
 
+.lorem {
+  text-align: justify;
+  max-width: 80vw;
+}
+
 .swiper-container {
   max-width: 20rem;
   border-radius: 1rem;
   overflow: clip;
   background-color: var(--green-200);
-
-  @media screen and (min-width: 900px) {
-    // max-width: 20rem;
-  }
 }
 
 .swiper-slide {
