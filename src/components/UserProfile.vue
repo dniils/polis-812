@@ -18,6 +18,10 @@ register()
 const store = useStore()
 const { userId } = defineProps(['userId'])
 const userDataIsLoading = ref(true)
+const tabs = ref({
+  tabActive: 'Albums',
+  name: ['Albums', 'Posts'],
+})
 
 onMounted(async () => {
   try {
@@ -38,6 +42,13 @@ onMounted(async () => {
     userDataIsLoading.value = false
   }
 })
+
+function selectTab(e: MouseEvent): void {
+  const selectedTab = (e.target as HTMLDivElement).innerHTML
+  if (tabs.value.tabActive !== selectedTab) {
+    tabs.value.tabActive = selectedTab
+  }
+}
 </script>
 
 <template>
@@ -66,56 +77,66 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="albums-and-posts">
-        <div class="albums">
-          <h3 class="albums__heading">Albums</h3>
-          <div class="albums__items">
-            <div
-              class="albums__item"
-              v-for="(album, index) in store.state.userAlbums"
-              :key="album.id"
-            >
-              <div class="albums__number-and-title">
-                <span class="albums__number">{{ index + 1 }}</span>
-                <h4 class="albums__title">
-                  {{ trimText(album.title, ALBUM_TITLE_MAX_CHARS) }}
-                </h4>
-              </div>
-
-              <swiper-container
-                slides-per-view="1"
-                navigation="true"
-                pagination="true"
-                class="swiper-container"
-              >
-                <swiper-slide
-                  class="swiper-slide"
-                  v-for="(photo) in store.state.photosFromAlbums.filter(
-                  (photo:PhotoInterface) => photo.albumId === album.id
-                ).slice(0, AMOUNT_OF_FIRST_PHOTOS_FROM_ALBUM)"
-                >
-                  <img :src="photo.url" alt="photo" class="albums__photo" />
-                  <!-- <div class="user-profile__icon"></div> -->
-                </swiper-slide>
-              </swiper-container>
-            </div>
+      <div class="tabs-wrapper">
+        <div class="tabs">
+          <div
+            class="tabs__item"
+            v-for="(tab, index) in tabs.name"
+            :key="index"
+            @click="selectTab"
+            :class="{ tabs__item_active: tab == tabs.tabActive }"
+          >
+            {{ tab }}
           </div>
         </div>
+        <div class="tabs__content">
+          <div class="albums" v-if="tabs.tabActive === 'Albums'">
+            <div class="albums__items">
+              <div
+                class="albums__item"
+                v-for="(album, index) in store.state.userAlbums"
+                :key="album.id"
+              >
+                <div class="albums__number-and-title">
+                  <span class="albums__number">{{ index + 1 }}</span>
+                  <h4 class="albums__title">
+                    {{ trimText(album.title, ALBUM_TITLE_MAX_CHARS) }}
+                  </h4>
+                </div>
 
-        <div class="posts">
-          <h3 class="posts__heading">Posts</h3>
-          <div class="posts__items">
-            <div
-              class="posts__item"
-              v-for="post in store.state.userPosts"
-              :key="post.id"
-            >
-              <h4 class="posts__title">
-                📝 {{ trimText(post.title, POST_TITLE_MAX_CHARS) }}
-              </h4>
-              <p class="posts__body">
-                {{ trimText(post.body, POST_BODY_MAX_CHARS) }}
-              </p>
+                <swiper-container
+                  slides-per-view="1"
+                  navigation="true"
+                  pagination="true"
+                  class="swiper-container"
+                >
+                  <swiper-slide
+                    class="swiper-slide"
+                    v-for="(photo) in store.state.photosFromAlbums.filter(
+                  (photo:PhotoInterface) => photo.albumId === album.id
+                ).slice(0, AMOUNT_OF_FIRST_PHOTOS_FROM_ALBUM)"
+                  >
+                    <img :src="photo.url" alt="photo" class="albums__photo" />
+                  </swiper-slide>
+                </swiper-container>
+              </div>
+            </div>
+          </div>
+
+          <div class="posts" v-if="tabs.tabActive === 'Posts'">
+            <div class="posts__items">
+              <div
+                class="posts__item"
+                v-for="post in store.state.userPosts"
+                :key="post.id"
+              >
+                <h4 class="posts__title">
+                  📝 {{ trimText(post.title, POST_TITLE_MAX_CHARS) }}
+                </h4>
+                <p class="posts__body">
+                  {{ trimText(post.body, POST_BODY_MAX_CHARS) }}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -129,6 +150,38 @@ onMounted(async () => {
   border-radius: 1rem;
   padding: 1rem;
   background-color: var(--green-200);
+}
+
+.tabs {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  justify-content: center;
+
+  &__item {
+    color: var(--green-300);
+    font-weight: 600;
+    background-color: var(--green-200);
+    border-radius: 1rem;
+    min-height: 2rem;
+    min-width: 6rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    user-select: none;
+
+    &:hover {
+      color: var(--green-500);
+      background-color: var(--green-300);
+    }
+
+    &_active {
+      background-color: var(--green-300);
+      color: var(--green-500);
+    }
+  }
 }
 
 .swiper-slide {
@@ -173,10 +226,10 @@ onMounted(async () => {
   gap: 1rem;
 }
 
-.albums-and-posts {
+.tabs-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 3rem;
+  gap: 1rem;
 }
 
 .albums,
@@ -205,20 +258,6 @@ onMounted(async () => {
 
   &__number {
     font-weight: 200;
-  }
-
-  &__heading {
-    text-align: center;
-    color: var(--green-300);
-
-    &::after {
-      content: '';
-      display: block;
-      width: 100%;
-      height: 0.1rem;
-      margin-top: 0.2rem;
-      background-color: var(--green-300);
-    }
   }
 }
 
@@ -269,4 +308,3 @@ onMounted(async () => {
   align-items: center;
 }
 </style>
-../constants/index
