@@ -38,8 +38,6 @@ onMounted(async () => {
       async (album: AlbumInterface) =>
         await store.dispatch('getPhotosFromAlbum', album.id)
     )
-
-    console.log(await store.state.photosFromAlbums)
   } catch (error) {
     console.error('Error dispatching:', error)
   } finally {
