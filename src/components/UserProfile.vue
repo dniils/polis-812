@@ -79,7 +79,10 @@ function selectTab(e: MouseEvent): void {
   <div>
     <button class="button button_back" @click="router.push('/')">&lt;-</button>
     <LoadingSpinner v-if="userDataIsLoading"></LoadingSpinner>
-    <div v-if="!userDataIsLoading" class="user-profile">
+    <div
+      v-if="!userDataIsLoading && store.state.currentUser.length !== 0"
+      class="user-profile"
+    >
       <div class="user-info">
         <div class="user-profile__icon"></div>
         <h2 class="user-profile__name">
@@ -196,6 +199,15 @@ function selectTab(e: MouseEvent): void {
         </div>
       </div>
     </div>
+
+    <div
+      class="no-such-user-message"
+      v-if="!userDataIsLoading && !store.state.currentUser.length"
+    >
+      <h2>
+        {{ `User with id=${router.currentRoute.value.params.id} not found 🤔` }}
+      </h2>
+    </div>
   </div>
 </template>
 
@@ -204,6 +216,10 @@ function selectTab(e: MouseEvent): void {
   border-radius: 1rem;
   padding: 1rem;
   background-color: var(--green-200);
+}
+
+.no-such-user-message {
+  text-align: center;
 }
 
 .button {
